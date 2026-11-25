@@ -149,6 +149,21 @@ Deux règles de rédaction de Julien appliquées et testées :
   naturellement (« Je la vends avec sa boîte d'origine… »). (Test B : la
   boîte du contexte est bien intégrée, aucune mention de « vendeur ».)
 
+## v1.8 — 25 novembre 2026 (jeudi midi)
+
+Un compteur de visites pour la démo (demande : « on a eu combien de visites ? ») :
+
+- Table `stats` dans la base : pages vues de la démo / scans publics /
+  recherches prix — comptés SEULEMENT sur l'instance publique (les usages
+  privés de Julien ne gonflent pas le compteur). Survit aux redémarrages.
+- Visible dans l'interface, ligne discrète en pied de page (apparait dès
+  la première visite) + route /api/stats.
+- Reprise des chiffres depuis l'ouverture (via les journaux serveur) :
+  au 25/11 midi, AUCUNE page chargée de l'extérieur — tout le trafic
+  public d'avant = tests de qualification de l'agent ; côté privé :
+  1 session de Julien le matin (3 scans). Le compteur part de zéro,
+  honnêtement, à partir de cette version.
+
 ## Avant : les étapes du même jour (24 novembre)
 
 Les versions n'existaient pas encore — ces étapes intermédiaires ne sont pas

@@ -64,6 +64,17 @@ async function verifierStatut() {
       $("status-text").textContent = "ollama pull " + s.modele + " requis";
     }
     majBouton();
+    // compteur visiteurs de la démo (une ligne discrète en pied de page)
+    fetch("/api/stats").then((r) => r.json()).then((s) => {
+      const st = s.stats || {};
+      const t = Object.values(st).reduce((a, b) => a + b, 0);
+      if (t > 0) {
+        $("stats-ligne").textContent =
+          `Démo publique depuis l'ouverture : ${st.pages_demo || 0} pages vues · ` +
+          `${st.scans_demo || 0} scans · ${st.prix_demo || 0} recherches prix`;
+        $("stats-ligne").classList.remove("hidden");
+      }
+    }).catch(() => {});
   } catch {
     $("status-dot").className = "dot dot-bad";
     $("status-text").textContent = "serveur coupé";

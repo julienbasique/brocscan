@@ -88,6 +88,7 @@ def scan(
         # son résultat (photo rendue en data URI), c'est tout.
         uris = ["data:image/jpeg;base64," + base64.b64encode(b).decode()
                 for b in normales]
+        db.compter("scans_demo")
         return {
             "id": scan_id,
             "created_at": datetime.now().isoformat(timespec="seconds"),
@@ -148,6 +149,8 @@ def marche(mots_cles: str, request: Request,
     if not mots_cles.strip():
         raise HTTPException(400, "mots_clés manquants")
     result = prix_reels_vinted(mots_cles.strip())
+    if PUBLIC and result.get("ok"):
+        db.compter("prix_demo")
     if (result.get("ok") and v_min is not None and v_max is not None
             and v_max >= v_min > 0):
         med = result.get("mediane") or 0
@@ -204,4 +207,11 @@ app.mount("/static", StaticFiles(directory=BASE / "static"), name="static")
 
 @app.get("/", include_in_schema=False)
 def racine():
+    if PUBLIC:
+        db.compter("pages_demo")       # compteur : la démo publique seulement
     return FileResponse(BASE / "static" / "index.html")
+
+
+@app.get("/api/stats")
+def stats_visites():
+    return {"stats": db.lire_stats()}

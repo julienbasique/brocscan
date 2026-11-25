@@ -37,6 +37,33 @@ def init_db() -> None:
         )
 
 
+def lire_stats() -> dict:
+    """Compteurs de la démo (pages vues, scans, recherches prix)."""
+    with _connexion() as con:
+        con.execute(
+            "CREATE TABLE IF NOT EXISTS stats ("
+            "cle TEXT PRIMARY KEY, nombre INTEGER NOT NULL)"
+        )
+        return {
+            r["cle"]: r["nombre"]
+            for r in con.execute("SELECT cle, nombre FROM stats")
+        }
+
+
+def compter(cle: str) -> None:
+    """+1 sur un compteur (table stats)."""
+    with _connexion() as con:
+        con.execute(
+            "CREATE TABLE IF NOT EXISTS stats ("
+            "cle TEXT PRIMARY KEY, nombre INTEGER NOT NULL)"
+        )
+        con.execute(
+            "INSERT INTO stats (cle, nombre) VALUES (?, 1) "
+            "ON CONFLICT(cle) DO UPDATE SET nombre = nombre + 1",
+            (cle,),
+        )
+
+
 def save_scan(scan_id: str, photo_path: str, ident: dict) -> str:
     """Enregistre un scan ; retourne l'id."""
     with _connexion() as con:
