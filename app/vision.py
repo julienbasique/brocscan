@@ -39,6 +39,39 @@ MODELES_CLOUD = [
 _DELAI_CACHE_PANNE = 600        # après un échec cloud, 10 min en local
 _date_echec_cloud = 0.0
 
+# Sécurité RAM (machine 8 Go) : après un scan CLOUD, si la mémoire
+# disponible tombe sous ~1,5 Go et que le modèle local dort en RAM pour
+# rien (4,6 Go), on le décharge. Coût assumé : si le cloud retombe ensuite,
+# il rechargera à froid (~2-3 min) — bien mieux qu'une machine qui swap.
+DECHARGE_AUTO = os.environ.get("VISION_AUTO_DECHARGE", "1") not in ("0", "false", "non")
+
+
+def _mem_dispo_go() -> float:
+    try:
+        for ligne in open("/proc/meminfo"):
+            if ligne.startswith("MemAvailable:"):
+                return int(ligne.split()[1]) / 1_048_576   # kB -> Go
+    except Exception:
+        return 999.0
+    return 999.0
+
+
+def _libere_si_ram_tendue() -> None:
+    if not DECHARGE_AUTO:
+        return
+    try:
+        if _mem_dispo_go() > 1.5:
+            return
+        resident = requests.get(f"{OLLAMA_URL}/api/ps", timeout=5).json()
+        if any(m.get("name", "").startswith(MODELE) for m in resident.get("models", [])):
+            requests.post(
+                f"{OLLAMA_URL}/api/generate",
+                json={"model": MODELE, "keep_alive": 0},
+                timeout=10,
+            )
+    except Exception:
+        pass        # la décharge est une sécurité, jamais une panne
+
 # Le modèle ne produit que ce que SEUL un modèle de vision peut donner
 # (lecture de la photo). Le reste — catégorie, rareté, fourchette, texte
 # d'annonce — est calculé par app/estimateur.py, sans jeton : sur CPU
@@ -266,6 +299,7 @@ def identifier(images: list[bytes], contexte: str = "") -> dict:
                 continue          # réponse cloud inexploitable -> moteur suivant
             ident = complete(ident, nom_cloud, images, contexte) or ident
             ident["moteur"] = "cloud · " + nom_cloud
+            _libere_si_ram_tendue()
             return ident
 
     # 2) moteur local (repli automatique, ou défaut si cloud inactivé)

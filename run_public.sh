@@ -7,5 +7,5 @@
 #                      mais plafonné par les quotas publics)
 #   - écoute 127.0.0.1 seulement : nulle part à atteindre SAUF via la porte
 #     Tailscale Funnel (voir ~/bin/lance_brocscan.sh).
-exec env PUBLIC_DEMO=1 VISION_CLOUD=1 VISION_MODELES_CLOUD="glm-5.3-flash:cloud" \
+exec env PUBLIC_DEMO=1 VISION_CLOUD=1 VISION_MODELES_CLOUD="glm-5.3-flash:cloud,gemma4:cloud" \
     ./.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8001

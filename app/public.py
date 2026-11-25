@@ -24,12 +24,19 @@ CODE_ACCES = os.environ.get("CODE_ACCES", "").strip()
 PUBLIC = os.environ.get("PUBLIC_DEMO") == "1"
 
 # fenêtre glissante d'une heure + plafond global par jour (toutes IP)
-MAX_HEURE = {"scan": 4, "marche": 1}
-MAX_JOUR = {"scan": 100, "marche": 12}
+# réglables par variables d'environnement (banc de tests, ajustements)
+MAX_HEURE = {
+    "scan": int(os.environ.get("LIMITE_SCANS_HEURE") or 4),
+    "marche": int(os.environ.get("LIMITE_MARCHE_HEURE") or 1),
+}
+MAX_JOUR = {
+    "scan": int(os.environ.get("LIMITE_SCANS_JOUR") or 100),
+    "marche": int(os.environ.get("LIMITE_MARCHE_JOUR") or 12),
+}
 
 MESSAGES_HEURE = {
-    "scan": "Démo publique : maximum 4 analyses/heure — réessayez dans un moment.",
-    "marche": "Démo publique : maximum 1 recherche « prix réels »/heure — réessayez plus tard.",
+    "scan": f"Démo publique : maximum {MAX_HEURE['scan']} analyses/heure — réessayez dans un moment.",
+    "marche": f"Démo publique : maximum {MAX_HEURE['marche']} recherche « prix réels »/heure — réessayez plus tard.",
 }
 MESSAGES_JOUR = {
     "scan": "Démo publique : le quota de la journée est épuisé — revenez demain.",

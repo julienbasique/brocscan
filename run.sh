@@ -5,7 +5,7 @@
 # injoignable (Wi-Fi coupé, quota...). Pour revenir au 100 % local :
 # mettre VISION_CLOUD=0.
 export VISION_CLOUD=1
-export VISION_MODELES_CLOUD="glm-5.3-flash:cloud"
+export VISION_MODELES_CLOUD="glm-5.3-flash:cloud,gemma4:cloud"
 cd "$(dirname "$0")"
 exec ./.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
 

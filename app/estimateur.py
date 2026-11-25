@@ -68,6 +68,8 @@ _MOTS_VIDE = {"vide", "inconnu", "inconnue", "n/a", "na", "none", "null", "aucun
 # et le prix proposé par le modèle a toujours le dernier mot dans son
 # bandeau de vraisemblance (voir enrichir()).
 _FOURCHETTES_SPECIFIQUES = [
+    # en tête : "manette" avant "ps5"/"playstation" (une manette n'est pas une console)
+    ("manette", (15, 80)),
     ("moto", (900, 4500)),
     ("scooter", (450, 2800)),
     ("apple pencil", (40, 160)),
@@ -97,6 +99,23 @@ _FOURCHETTES_SPECIFIQUES = [
     ("reflex", (70, 900)),
     ("objectif", (40, 700)),
     ("drone", (70, 900)),
+    # brocante courante (v1.9) : ces objets sortaient en fourchette générique
+    ("imprimante", (25, 150)),
+    ("ecran", (30, 300)),
+    ("moniteur", (30, 300)),
+    ("television", (30, 350)),
+    ("televiseur", (30, 350)),
+    ("casque", (20, 250)),
+    ("enceinte", (15, 250)),
+    ("machine a coudre", (60, 450)),
+    ("camescope", (30, 180)),
+    ("lego", (15, 250)),
+    ("playmobil", (10, 80)),
+    ("pokemon", (5, 150)),
+    ("carte graphique", (40, 700)),
+    ("telephone fixe", (5, 40)),
+    ("argenterie", (20, 300)),
+    ("reveil", (5, 40)),
 ]
 
 
@@ -181,12 +200,13 @@ def enrichir(ident: dict) -> dict:
         mult *= 1.35
 
     # Le modèle connaît le marché : sa fourchette prime si elle est
-    # vraisemblable (ni 2 € pour une moto, ni 9 000 € pour un t-shirt).
+    # vraisemblable (ni 2 € pour une moto, ni 480 € pour une manette std) :
+    # fenêtre 0,2×–3× autour de la table (large, mais bornée aux deux bouts).
     p_min = int(ident.get("prix_min") or 0)
     p_max = int(ident.get("prix_max") or 0)
     if p_min > 0 and p_max >= p_min \
             and p_min >= max(1, round(bornes[0] * 0.2)) \
-            and p_max <= bornes[1] * 8:
+            and p_max <= bornes[1] * 3:
         vmin = max(1, p_min)
         vmax = max(vmin + 2, p_max)
     else:

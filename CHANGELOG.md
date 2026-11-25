@@ -164,6 +164,33 @@ Un compteur de visites pour la démo (demande : « on a eu combien de visites ? 
   1 session de Julien le matin (3 scans). Le compteur part de zéro,
   honnêtement, à partir de cette version.
 
+## v1.9 — 25 novembre 2026 (après-midi)
+
+Série d'optimisations et de filets (à la demande : « règle tout sauf 7 et 8 ») :
+
+- **2e moteur nuage de secours** : `gemma4:cloud` (dans le registre Ollama,
+  vu les images et lit les textes en 0,9 s). La chaîne devient
+  glm → gemma4 → local : plus un point de rupture unique sur le nuage
+  (quota épuisé, indispo, panne).
+- **Sécurité RAM** : après un scan nuage, si la mémoire libre tombe sous
+  1,5 Go et que le modèle local dort en RAM pour rien (4,6 Go), il est
+  déchargé automatiquement — la machine ne swap plus à cause d'un moteur
+  inutilisé (ce matin, un pic exactement pareil avait fait redémarrer Ollama).
+- **Fourchette IA resserrée** : le prix du modèle ne peut plus dépasser
+  3× la table de référence (au lieu de 8×) — un 480 € pour une manette ne
+  passe plus.
+- **Tables de prix élargies** : +16 objets brocante (imprimante, écran/moniteur,
+  TV, casque, enceinte, machine à coudre, camescope, LEGO, Playmobil,
+  Pokémon, carte graphique, téléphone fixe, argenterie, réveil…) ; et
+  « manette » replacée AVANT « ps5 » — une manette n'est pas une console
+  (mesuré sur la même photo : 480 € → 35-50 €).
+- **Limites de la démo réglables** par variables d'environnement ; les
+  messages affichés suivent la limite réelle.
+- **Banc de tests automatique** `scripts/tests_brocscan.sh` : 15
+  vérifications (les deux instances, masquage des données privées, gardes,
+  quotas, porte internet, chaîne complète). 15/15 OK. À relancer après
+  chaque changement — il aurait attrapé le bug des quotas tout seul.
+
 ## Avant : les étapes du même jour (24 novembre)
 
 Les versions n'existaient pas encore — ces étapes intermédiaires ne sont pas
