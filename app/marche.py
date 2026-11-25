@@ -16,6 +16,7 @@ les ventes réellement écoulées restent dans le lien eBay « ventes terminées
 import re
 import os
 import statistics
+import time as _temps
 from urllib.parse import quote_plus
 
 # mots qui disqualifient une annonce (accessoires, pas l'objet lui-même)
@@ -32,6 +33,8 @@ _MOTS_EXCLUS = (
 )
 
 _TIMEOUT_MS = 45_000
+_CACHE_DUREE = 600                # 10 min : même recherche = pas de nouveau Chrome
+_CACHE: dict[str, tuple[float, dict]] = {}
 
 
 def _parse_annonce(attr_title: str) -> tuple[str, float] | None:
@@ -63,10 +66,16 @@ def prix_reels_vinted(mots_cles: str, limite_annonces: int = 40) -> dict:
     """Ouvre un Chrome réel sur Vinted, lit les annonces, renvoie les stats.
 
     Retourne {ok, erreur?, nombre, min, mediane, max, echantillon: [(titre, prix)]}.
+    Cache de 10 min par recherche : re-cliquer ne relance pas Chrome (plus
+    rapide, et moins de passages visibles sur l'IP maison).
     """
     from playwright.sync_api import sync_playwright
 
     recherche = mots_cles.strip() or "dualsense"
+    cle = recherche.lower()
+    memo = _CACHE.get(cle)
+    if memo is not None and _temps.time() - memo[0] < _CACHE_DUREE:
+        return dict(memo[1], cache=True)
     try:
         with sync_playwright() as pw:
             nav = pw.chromium.launch(
@@ -130,7 +139,7 @@ def prix_reels_vinted(mots_cles: str, limite_annonces: int = 40) -> dict:
     prix_ = [p for _, p in filtres]
     echantillon = sorted(filtres, key=lambda x: x[1])
     milieu = len(echantillon) // 2
-    return {
+    result = {
         "ok": True,
         "source": "Vinted — prix demandés, aujourd'hui",
         "nombre": len(filtres),
@@ -142,6 +151,8 @@ def prix_reels_vinted(mots_cles: str, limite_annonces: int = 40) -> dict:
         )],
         "url": f"https://www.vinted.fr/catalog?search_text={quote_plus(recherche)}",
     }
+    _CACHE[cle] = (_temps.time(), result)
+    return result
 
 
 def _sans_accents(texte: str) -> str:

@@ -229,6 +229,7 @@ button:focus-visible, .dropzone:focus-visible, a:focus-visible {
 .market-ligne { color: var(--text); font-weight: 500; }
 .market-titres { font-size: 13px; color: var(--text-2); margin-top: 6px; line-height: 1.45; }
 .market-titres div { margin: 2px 0; }
+.p-conseille { color: #1a7f5c; font-weight: 600; margin-bottom: 6px; }
 
 /* ---------- Chargement ---------- */
 .loading { display: flex; align-items: center; gap: 20px; }

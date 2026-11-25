@@ -135,17 +135,32 @@ def supprimer(scan_id: str):
 
 
 @app.get("/api/marche")
-def marche(mots_cles: str, request: Request):
+def marche(mots_cles: str, request: Request,
+           v_min: float | None = None, v_max: float | None = None):
     """Prix RÉELS du marché d'occasion (Vinted, via Chrome réel).
 
     À la demande (bouton de l'interface) : un scan ne déclenche jamais
-    cette navigation, elle coûte ~10-20 s. À défaut, le lien eBay
-    « ventes terminées » reste fourni pour vérifier à la main.
+    cette navigation, elle coûte ~10-20 s. Si la fourchette IA du dernier
+    scan est passée (v_min/v_max), le résultat porte un ANCRAGE : le prix
+    conseillé = médiane des vraies annonces (le marché est le juge).
     """
     verifier_limite("marche", request)    # mode public : quotas (sinon sans effet)
     if not mots_cles.strip():
         raise HTTPException(400, "mots_clés manquants")
-    return prix_reels_vinted(mots_cles.strip())
+    result = prix_reels_vinted(mots_cles.strip())
+    if (result.get("ok") and v_min is not None and v_max is not None
+            and v_max >= v_min > 0):
+        med = result.get("mediane") or 0
+        if med <= 0:
+            return result
+        result["prix_conseille"] = med
+        if v_min <= med <= v_max:
+            result["ancrage"] = "médiane du marché, dans ta fourchette"
+        elif med < v_min:
+            result["ancrage"] = "le marché est MOINS cher que ton estimation"
+        else:
+            result["ancrage"] = "le marché est PLUS cher que ton estimation"
+    return result
 
 
 @app.get("/api/status")

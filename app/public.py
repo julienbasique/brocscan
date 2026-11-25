@@ -43,6 +43,9 @@ _JOUR: dict[date, dict[str, int]] = {}
 
 def verifier(cle: str, request: Request) -> None:
     """Lève HTTPException (si interdit/dépassement) ou note l'usage (sinon)."""
+    if not PUBLIC:
+        return        # l'instance privée de Julien n'a JAMAIS de limites
+
     transmise = (request.headers.get("x-forwarded-for") or "").split(",")[0].strip()
     ip = transmise or (request.client.host if request.client else "?")
     maintenant = time.time()

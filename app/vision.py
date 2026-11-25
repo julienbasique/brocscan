@@ -43,13 +43,21 @@ _date_echec_cloud = 0.0
 # (lecture de la photo). Le reste — catégorie, rareté, fourchette, texte
 # d'annonce — est calculé par app/estimateur.py, sans jeton : sur CPU
 # (~5 tokens/s), chaque champ de sortie économisé = secondes gagnées.
-CONSIGNE = """Tu vois une ou plusieurs photos du MÊME objet d'occasion (face, dos, détails). Tu ne rapportes QUE ce qu'elles montrent.
-1. Transcris à la lettre chaque texte/gravure visible, sans rien inventer.
-2. Si la photo montre une boîte ou un emballage d'origine, identifie le PRODUIT qu'il contient (ex : "Apple Pencil 1re génération") et précise "boîte d'origine" dans l'objet ; ne réponds "boîte" dans objet QUE si tu ne peux pas savoir ce qu'elle contenait.
-3. Marque/modèle seulement si lisibles sur l'objet ou l'emballage, sinon chaîne vide.
-4. Réponds uniquement avec ce JSON, sur une seule ligne, sans texte autour :
-{"texte_visible":"textes lus séparés par ' | ' (vide si aucun)","objet":"nom courant précis","marque":"nom si clairement lisible/emblématique, sinon \"\"","modele":"référence si lisible, sinon \"\"","etat":"une de: neuf,excellent,bon,correct,use,hs","prix_min":entier,"prix_max":entier,"mots_cles":"2-4 mots","confiance":1.0 si marque lisible, sinon 0.6-0.8}
-5. prix_min/prix_max : fourchette d'occasion réaliste en euros d'après l'état visible et ta connaissance du marché de la seconde main ; si tu n'en sais vraiment rien, mets 0. Champs marque/modele : s'il n'y a rien de lisible, laisse-les comme chaînes vides "", n'écris jamais le mot vide."""
+CONSIGNE = """
+
+Tu vois 1 à 3 photos du MÊME objet d'occasion (angles différents : face, dos, détails). Tu es un expert en brocante et tu ne te fies QU'À l'image.
+
+L'OBJET À DÉCRIRE est le SUJET des photos : celui qui est net, centré, photographié par le vendeur. Les objets d'arrière-plan (bureau, ordinateur, murs, bibelots) ne comptent PAS, même s'ils sont gros — sauf si une photo les montre net et seul.
+
+Étape 1 — LECTURE : transcris à la lettre chaque texte, gravure, étiquette, logo et chiffre visibles, PHOTO PAR PHOTO (photo1:, photo2:... Fusionne : un détail lisible sur une seule photo vaut pour l'objet entier.
+Étape 2 — OBJET : nom courant le plus précis possible, avec variante/édition/couleur VISIBLES. Si les photos montrent une boîte ou un emballage d'origine, identifie le PRODUIT qu'il contient (ex : "Apple Pencil 1re génération") et précise "boîte d'origine".
+Étape 3 — MARQUE/MODÈLE seulement si lisibles sur l'objet ou l'emballage, sinon chaîne vide. N'ÉCRIS JAMAIS le mot vide.
+Étape 4 — ÉTAT d'après les détails visibles (rayures, usure, poussière, câble...) : une de: neuf,excellent,bon,correct,use,hs.
+Étape 5 — FOURCHETTE : prix d'occasion réaliste en euros (connaissance du marché de la seconde main + état visible) ; 0 si tu n'en sais vraiment rien.
+Étape 6 — MOTS_CLES : 2-4 mots pour retrouver cet objet en ligne.
+Réponds uniquement avec ce JSON, sur une seule ligne, sans texte autour :
+{"texte_visible":"photo1: ... | photo2: ... (vide si aucun)","objet":"nom courant précis","marque":"nom si clairement lisible/emblématique, sinon \\"\\"","modele":"référence si lisible, sinon \\"\\"","etat":"une de: neuf,excellent,bon,correct,use,hs","prix_min":entier,"prix_max":entier,"mots_cles":"2-4 mots","confiance":1.0 si marque lisible, sinon 0.6-0.8}
+"""
 
 
 def extraire_json(texte: str) -> dict:
@@ -82,6 +90,23 @@ def extraire_json(texte: str) -> dict:
         return json.loads(objets[-1])        # réponse finale, après le thinking
     except json.JSONDecodeError as e:
         raise ValueError(f"JSON illisible : {e}") from e
+
+
+# Filet anti-vide : une réponse sans AUCUN champ rempli (ça arrive une fois
+# de temps en temps, cf. scan de hier 17h) est redemandée UNE fois au même
+# moteur. Un mauvais texte aléatoire vaut mieux qu'une page vide.
+_REPRISE_VIDE = (
+    "IMPORTANT : ta réponse précédente était vide ou incomplète. "
+    "Renvoie maintenant le JSON demandé avec TOUS les champs remplis d'après "
+    "ce que tu vois vraiment. Seuls marque/modele restent \"\" si illisibles."
+)
+
+
+def _ident_vide(ident: dict) -> bool:
+    return not any(
+        (ident.get(cle) or "").strip()
+        for cle in ("objet", "texte_visible", "marque")
+    )
 
 
 def modele_disponible() -> bool:
@@ -126,7 +151,11 @@ def message_complet(nom_modele: str, contexte: str = "") -> str:
     return message
 
 
-def _payload_pour(nom_modele: str, images: list, contexte: str = "") -> dict:
+def _payload_pour(nom_modele: str, images: list, contexte: str = "",
+                  pousse: str = "") -> dict:
+    message = message_complet(nom_modele, contexte)
+    if pousse:
+        message += "\n\n" + pousse
     return {
         "model": nom_modele,
         "stream": False,
@@ -151,7 +180,8 @@ def _payload_pour(nom_modele: str, images: list, contexte: str = "") -> dict:
     }
 
 
-def _essayer_moteur(nom_modele: str, images: list, contexte: str = "") -> dict | None:
+def _essayer_moteur(nom_modele: str, images: list, contexte: str = "",
+                    pousse: str = "") -> dict | None:
     """Fait parler UN moteur.
 
     Retourne la réponse JSON d'Ollama, ou None si le moteur est
@@ -161,7 +191,7 @@ def _essayer_moteur(nom_modele: str, images: list, contexte: str = "") -> dict |
     global _date_echec_cloud
     reponse = requests.post(
         OLLAMA_URL + "/api/chat",
-        json=_payload_pour(nom_modele, images, contexte),
+        json=_payload_pour(nom_modele, images, contexte, pousse),
         timeout=150 if ":cloud" in nom_modele else 600,
     )
     if reponse.status_code in (401, 403, 404, 407, 500, 502, 503, 504):
@@ -199,10 +229,25 @@ def identifier(images: list[bytes], contexte: str = "") -> dict:
     """1 à 3 photos -> identification structurée.
 
     Cloud d'abord si activé (+ moteur rapide), sinon local ; l'échec ne
-    remonte que si TOUS les moteurs échouent.
+    remonte que si TOUS les moteurs échouent. Une réponse TOTALEMENT vide
+    est redemandée une fois au même moteur (filet anti-vide).
     """
     if isinstance(images, (bytes, bytearray)):     # tolère un appel mono-photo
         images = [images]
+
+    def complete(candidat: dict | None, nom_moteur: str, images, contexte) -> dict:
+        """Applique le filet anti-vide à une réponse (une reprise max)."""
+        if candidat is None or not _ident_vide(candidat):
+            return candidat
+        reprise = _essayer_moteur(nom_moteur, images, contexte,
+                                  pousse=_REPRISE_VIDE)
+        if reprise is None:
+            return candidat
+        try:
+            deuxieme = _reponse_vers_ident(reprise)
+        except (json.JSONDecodeError, ValueError, KeyError):
+            return candidat
+        return deuxieme if not _ident_vide(deuxieme) else candidat
 
     # 1) moteurs cloud (mode hybride, dans l'ordre de la liste)
     global _date_echec_cloud
@@ -219,6 +264,7 @@ def identifier(images: list[bytes], contexte: str = "") -> dict:
                 ident = _reponse_vers_ident(reponse)
             except (json.JSONDecodeError, ValueError, KeyError):
                 continue          # réponse cloud inexploitable -> moteur suivant
+            ident = complete(ident, nom_cloud, images, contexte) or ident
             ident["moteur"] = "cloud · " + nom_cloud
             return ident
 
@@ -231,5 +277,6 @@ def identifier(images: list[bytes], contexte: str = "") -> dict:
     if reponse is None:
         raise RuntimeError("le serveur Ollama local est injoignable")
     ident = _reponse_vers_ident(reponse)
+    ident = complete(ident, MODELE, images, contexte) or ident
     ident["moteur"] = "local · " + MODELE
     return ident

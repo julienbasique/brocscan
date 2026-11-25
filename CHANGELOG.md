@@ -95,6 +95,29 @@ toujours accessible à tous.
 - L'installation chez quelqu'un d'autre devient :
   `git clone https://github.com/julienbasique/brocscan.git` + la notice.
 
+## v1.5 — 25 novembre 2026 (fin de matinée)
+
+L'identification améliorée, mesurée sur 8 vrais scans de Julien (A/B avant/après) :
+
+- **Nouvelle consigne moteur** : lecture PHOTO PAR PHOTO puis fusion ;
+  l'objet SUJET (net, centré) est désormais clairement séparé des objets
+  d'arrière-plan du bureau. Résultat mesuré : 8/8 bien identifiés, noms
+  plus précis (la Casio devient « F-91W », la base Freebox nommée comme
+  telle), vitesses identiques ou meilleures (1,8-3,5 s).
+- **Filet anti-vide** : une réponse vide du modèle (comme hier 17 h, les
+  lunettes d'enfant) est redemandée automatiquement une fois au même moteur.
+- **« Prix réels » croisés avec l'estimation** : le bloc prix affiche
+  maintenant « → Prix conseillé : X € » = médiane des vraies annonces,
+  avec la phrase qui dit si l'estimation IA est dans le marché, plus
+  chère ou moins chère que le marché.
+- **Cache 10 min** des recherches « prix réels » : re-cliquer = instantané,
+  et moins de navigations Chrome depuis l'IP maison.
+- **BUG corrigé** : depuis la v1.3, l'app privée appliquait par erreur les
+  quotas publics — après 1 recherche « prix réels » par heure, Julien
+  tombait sur un blocage. L'app privée n'a désormais AUCUNE limite
+  (retesté 3 appels d'affilée); les quotas restent sur la démo publique
+  (retestés : 1er appel 200, 2e 429).
+
 ## Avant : les étapes du même jour (24 novembre)
 
 Les versions n'existaient pas encore — ces étapes intermédiaires ne sont pas

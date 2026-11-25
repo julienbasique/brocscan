@@ -25,6 +25,7 @@ const MAX_PHOTOS = 3;
 let fichiers = [];        // File[] sélectionnées (max 3)
 let annoncesCourantes = []; // [{nom, titre, description, url_vendre, url_recherche}]
 let objetPhoto = null;    // URL de la photo 1 (aperçu du résultat)
+let prixDernierScan = null;  // {min,max} : la fourchette du dernier scan
 
 // Code d'accès (démo fermée par son propriétaire, optionnel) : demandé
 // une seule fois par visiteur, mémorisé dans le navigateur.
@@ -233,6 +234,7 @@ function afficherResultat(data) {
 
   // mots-clés pour la recherche marché + reset du bloc prix réels
   motsClesDernierScan = i.mots_cles || [i.marque, i.objet].filter(Boolean).join(" ");
+  prixDernierScan = { min: i.valeur_min_eur, max: i.valeur_max_eur };
   $("market-block").classList.add("hidden");
   $("market-ligne").textContent = "";
   $("market-details").innerHTML = "";
@@ -293,14 +295,21 @@ $("market-btn").addEventListener("click", async () => {
   $("market-details").innerHTML = "";
   try {
     const q = encodeURIComponent(motsClesDernierScan || "dualsense");
-    const r = await fetch("/api/marche?mots_cles=" + q, { headers: enteteCode() });
+    const p = (prixDernierScan && prixDernierScan.max > 0)
+      ? `&v_min=${prixDernierScan.min}&v_max=${prixDernierScan.max}` : "";
+    const r = await fetch("/api/marche?mots_cles=" + q + p, { headers: enteteCode() });
     const d = await r.json();
     if (r.status === 401) codeRejete("Code d'accès manquant ou faux. ");
     if (!d.ok) throw new Error(d.detail || d.erreur || "marché indisponible");
     $("market-ligne").textContent =
-      `${d.nombre} annonces Vinted aujourd'hui — de ${d.min} € à ${d.max} €, médiane ${d.mediane} €`;
-    $("market-details").innerHTML = (d.echantillon || [])
-      .map((t) => `<div>· ${escapeHtml(t)}</div>`).join("");
+      `${d.nombre} annonces Vinted aujourd'hui — de ${d.min} € à ${d.max} €, médiane ${d.mediane} €` +
+      (d.cache ? " (résultat récent)" : "");
+    $("market-details").innerHTML =
+      (d.prix_conseille
+        ? `<div class="p-conseille">→ Prix conseillé : <strong>${d.prix_conseille} €</strong> — ${escapeHtml(d.ancrage || "")}</div>`
+        : "")
+      + (d.echantillon || [])
+          .map((t) => `<div>· ${escapeHtml(t)}</div>`).join("");
   } catch (e) {
     $("market-ligne").textContent = "Marché indisponible : " + e.message;
   } finally {
