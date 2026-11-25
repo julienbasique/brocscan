@@ -14,6 +14,7 @@ pour garder l'analyse à 2 s). Ce sont des prix DEMANDÉS (pas encore vendus) :
 les ventes réellement écoulées restent dans le lien eBay « ventes terminées ».
 """
 import re
+import os
 import statistics
 from urllib.parse import quote_plus
 
@@ -68,7 +69,14 @@ def prix_reels_vinted(mots_cles: str, limite_annonces: int = 40) -> dict:
     recherche = mots_cles.strip() or "dualsense"
     try:
         with sync_playwright() as pw:
-            nav = pw.chromium.launch(channel="chrome", headless=False)
+            nav = pw.chromium.launch(
+                channel="chrome",
+                # instance publique : sans fenêtre (un inconnu ne doit pas
+                # faire apparaître des Chrome sur l'écran de Julien) ;
+                # si Vinted bloque le headless, la fonction renvoie
+                # simplement « navigateur indisponible », c'est acceptable.
+                headless=os.environ.get("PUBLIC_DEMO") == "1",
+            )
             page = nav.new_page(locale="fr-FR", viewport={"width": 1280, "height": 900})
             page.goto(
                 f"https://www.vinted.fr/catalog?search_text={quote_plus(recherche)}",

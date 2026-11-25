@@ -47,6 +47,21 @@ ollama pull gemma4:e2b                  # le secours local (~4,6 Go)
 
 Les photos et l'historique restent sur CET ordinateur, dans `data/`.
 
+## Démo publique sur internet (gratuite)
+
+À part ton app privée, une démonstration est ouverte à tout le monde à
+cette adresse (un lien, aucun compte) :
+
+```
+https://brocscan.tail598dc7.ts.net/
+```
+
+- Moteurs et fonctions identiques ; les visiteurs ne voient jamais tes
+  scans ni tes photos (instance séparée, app/public.py).
+- Quotas : 4 scans/heure/visiteur, 100/jour ; « prix réels » 1/heure, 12/jour.
+- La porte (Tailscale Funnel) pointe vers 127.0.0.1:8001 et se relance avec
+  l'icône de bureau. Couper : `~/bin/tailscale funnel --https=443 off`.
+
 ## Comment ça marche
 
 ```

@@ -36,6 +36,30 @@ Version « prête à publier » : le paquet est propre pour être partagé.
 Le dépôt en ligne n'existe pas encore — reste à créer le compte/connexion
 GitHub avec Julien, puis pousser. Zéro euro jusqu'ici et après.
 
+## v1.2 — 25 novembre 2026 (midi)
+
+La démo sur INTERNET : BrocScan accessible à tout le monde, gratuitement.
+
+- Nouvelle adresse publique : `https://brocscan.tail598dc7.ts.net/` —
+  n'importe qui, n'importe quel appareil, n'importe quel réseau (4G inclus),
+  aucun compte à créer. Porte internet gratuite (Tailscale Funnel, HTTPS
+  automatique, aucun réglage de box).
+- Les visiteurs font la même chose que toi : photos → estimation → annonces,
+  bouton « prix réels ».
+- Ils ne peuvent JAMAIS voir tes scans ni tes photos : instance séparée
+  (port 8001), historique masqué, photos inaccessibles, suppression bloquée ;
+  leurs propres scans sont éphémères (rien sur le disque, rien dans ta liste).
+- Garde-fous anti-abus (ta quota reste pour TOI en priorité) :
+  4 analyses/heure par visiteur et 100/jour au total ; « prix réels » :
+  1/heure et 12/jour ; l'instance publique pilote Chrome sans fenêtre
+  (rien ne s'ouvre à l'écran de la maison).
+- Ton app privée reste exactement comme avant (port 8000).
+- Vérifié en testant depuis internet : 4 scans passés (lire « montre Casio
+  F-91W », fourchette 8-25 €), le 5e bloqué avec le message en français ;
+  Vinted marche même sans fenêtre (96 annonces, médiane 20 €) ; rien
+  stocké (71 photos avant = 71 après).
+- Après un reboot du PC : l'icône de bureau relance tout, porte internet incluse.
+
 ## Avant : les étapes du même jour (24 novembre)
 
 Les versions n'existaient pas encore — ces étapes intermédiaires ne sont pas

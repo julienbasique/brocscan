@@ -8,12 +8,13 @@ Routes :
     GET  /api/status      état d'Ollama et du modèle
     GET  /photo/{id}      renvoyer la photo enregistrée
 """
+import base64
 import json
 import uuid
 from datetime import datetime
 from pathlib import Path
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from requests import RequestException
@@ -22,15 +23,20 @@ from . import db, vision
 from .images import normaliser_image
 from .market import recommander_plateformes
 from .marche import prix_reels_vinted
+from .public import PUBLIC, verifier as verifier_limite
 
 BASE = Path(__file__).resolve().parent.parent
-app = FastAPI(title="BrocScan", version="0.1.0")
+app = FastAPI(title="BrocScan", version="1.2.0")
 db.init_db()
 (BASE / "data").mkdir(exist_ok=True)
 
 
 @app.post("/api/scan")
-def scan(photos: list[UploadFile] = File(...), contexte: str = Form("")):
+def scan(
+    request: Request,
+    photos: list[UploadFile] = File(...),
+    contexte: str = Form(""),
+):
     """Pipeline : 1-3 photos (+ contexte optionnel) -> Gemma 4 -> annonces -> sauvegarde.
 
     Les photos montrent le MÊME objet sous plusieurs angles ; la première
@@ -41,6 +47,7 @@ def scan(photos: list[UploadFile] = File(...), contexte: str = Form("")):
     threads, sinon l'appel bloquant vers Ollama (plusieurs minutes sur CPU)
     gèlerait TOUT le serveur (historique, /photo...) pendant une analyse.
     """
+    verifier_limite("scan", request)      # mode public : quotas (sinon sans effet)
     if not photos or not photos[0].filename:
         raise HTTPException(400, "au moins une photo est requise")
     photos = photos[:3]                     # 3 photos max, même objet
@@ -75,6 +82,21 @@ def scan(photos: list[UploadFile] = File(...), contexte: str = Form("")):
         raise HTTPException(503, f"Ollama injoignable : {e}")
 
     scan_id = uuid.uuid4().hex[:12]
+    if PUBLIC:
+        # Démo : scan ÉPHÉMÈRE — rien sur le disque, rien dans l'historique
+        # de Julien (data/ est SON espace). Le visiteur voit immédiatement
+        # son résultat (photo rendue en data URI), c'est tout.
+        uris = ["data:image/jpeg;base64," + base64.b64encode(b).decode()
+                for b in normales]
+        return {
+            "id": scan_id,
+            "created_at": datetime.now().isoformat(timespec="seconds"),
+            "photo": uris[0],
+            "photos_extra": uris[1:],
+            "contexte": indice,
+            "identification": ident,
+            "plateformes": recommander_plateformes(ident),
+        }
     dossier = BASE / "data" / "photos"
     dossier.mkdir(parents=True, exist_ok=True)
     (dossier / f"{scan_id}.jpg").write_bytes(normales[0])
@@ -97,24 +119,30 @@ def scan(photos: list[UploadFile] = File(...), contexte: str = Form("")):
 
 @app.get("/api/scans")
 def historique():
+    if PUBLIC:
+        # la démo internet ne montre JAMAIS les scans de Julien
+        return []
     return db.list_scans()
 
 
 @app.delete("/api/scans/{scan_id}")
 def supprimer(scan_id: str):
+    if PUBLIC:
+        raise HTTPException(403, "Indisponible sur la démo publique")
     if not db.delete_scan(scan_id):
         raise HTTPException(404, "scan inconnu")
     return {"ok": True}
 
 
 @app.get("/api/marche")
-def marche(mots_cles: str):
+def marche(mots_cles: str, request: Request):
     """Prix RÉELS du marché d'occasion (Vinted, via Chrome réel).
 
     À la demande (bouton de l'interface) : un scan ne déclenche jamais
     cette navigation, elle coûte ~10-20 s. À défaut, le lien eBay
     « ventes terminées » reste fourni pour vérifier à la main.
     """
+    verifier_limite("marche", request)    # mode public : quotas (sinon sans effet)
     if not mots_cles.strip():
         raise HTTPException(400, "mots_clés manquants")
     return prix_reels_vinted(mots_cles.strip())
@@ -127,11 +155,15 @@ def statut():
         "modele": vision.MODELE,
         "cloud": vision.ACTIVER_CLOUD,
         "modeles_cloud": vision.MODELES_CLOUD,
+        "public": PUBLIC,
     }
 
 
 @app.get("/photo/{scan_id}")
 def image(scan_id: str):
+    if PUBLIC:
+        # démo internet : les photos enregistrées de Julien restent privées
+        raise HTTPException(404, "photo inconnue")
     chemin = db.photo_path_of(scan_id)
     if chemin is None:
         raise HTTPException(404, "photo inconnue")
@@ -141,6 +173,8 @@ def image(scan_id: str):
 @app.get("/photo/{scan_id}/{numero}")
 def image_supplementaire(scan_id: str, numero: int):
     """Photo 2 ou 3 d'un scan multi-photos (photos/{id}_{n}.jpg)."""
+    if PUBLIC:
+        raise HTTPException(404, "photo inconnue")
     if numero < 2 or numero > 5:
         raise HTTPException(404, "photo inconnue")
     chemin = BASE / "data" / "photos" / f"{scan_id}_{numero}.jpg"
