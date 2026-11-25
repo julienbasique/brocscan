@@ -36,7 +36,7 @@ Besoin : un ordinateur (Linux de préférence), **Chrome** installé
 (gratuit — c'est lui qui relie le moteur nuage).
 
 ```bash
-git clone LE-LIEN-DU-DEPOT-GIT     # donné une fois publié
+git clone https://github.com/julienbasique/brocscan.git
 cd brocscan
 python3 -m venv .venv
 ./.venv/bin/pip install -r requirements.txt

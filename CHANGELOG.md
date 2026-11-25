@@ -84,6 +84,17 @@ Sécurité du compte et de la démo publique.
   la démo SANS nuage du tout (0 risque pour ton compte, scans 20-30 s) :
   une ligne à changer.
 
+## v1.4 — 25 novembre 2026 (après-midi, encore)
+
+La publication sur GitHub : le code est en ligne, public, gratuit, pour
+toujours accessible à tous.
+
+- Dépôt : https://github.com/julienbasique/brocscan
+- Contenu : le code, la licence MIT, la notice d'installation, ce journal.
+  Jamais : les photos, l'historique des scans, aucun mot de passe.
+- L'installation chez quelqu'un d'autre devient :
+  `git clone https://github.com/julienbasique/brocscan.git` + la notice.
+
 ## Avant : les étapes du même jour (24 novembre)
 
 Les versions n'existaient pas encore — ces étapes intermédiaires ne sont pas
