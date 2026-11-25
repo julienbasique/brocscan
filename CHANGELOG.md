@@ -24,6 +24,18 @@ Vérifié le 25/11 au matin : serveur en marche, 67 scans dans l'historique
 (dont ton téléphone DECT, le boîtier Raspberry Pi et la manette DualSense
 de ce matin), prix réels Vinted retestés — 98 annonces DualSense, médiane 79 €.
 
+## v1.1 — 25 novembre 2026 (peu après)
+
+Version « prête à publier » : le paquet est propre pour être partagé.
+
+- Notice « installer sur un autre ordinateur » dans le README (5 min, gratuit)
+- Licence MIT (ce qu'on a le droit de partager : tout, avec le nom de Julien)
+- Liste des dépendances exacte (il manquait la photo et le pilote Chrome dans le fichier)
+- Vérifié : aucun mot de passe ni info personnelle dans le code publié
+
+Le dépôt en ligne n'existe pas encore — reste à créer le compte/connexion
+GitHub avec Julien, puis pousser. Zéro euro jusqu'ici et après.
+
 ## Avant : les étapes du même jour (24 novembre)
 
 Les versions n'existaient pas encore — ces étapes intermédiaires ne sont pas
