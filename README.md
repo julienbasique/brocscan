@@ -29,6 +29,24 @@ Modèles installés localement (le repli) :
 ollama pull gemma4:e2b     # ~4.6 Go, une seule fois
 ```
 
+## Installer BrocScan sur un autre ordinateur (gratuit)
+
+Besoin : un ordinateur (Linux de préférence), **Chrome** installé
+(pour les « prix réels »), **Ollama** installé avec un compte ollama.com
+(gratuit — c'est lui qui relie le moteur nuage).
+
+```bash
+git clone LE-LIEN-DU-DEPOT-GIT     # donné une fois publié
+cd brocscan
+python3 -m venv .venv
+./.venv/bin/pip install -r requirements.txt
+./.venv/bin/playwright install chrome   # pilote Chrome pour Vinted
+ollama pull gemma4:e2b                  # le secours local (~4,6 Go)
+./run.sh                                # → http://localhost:8000
+```
+
+Les photos et l'historique restent sur CET ordinateur, dans `data/`.
+
 ## Comment ça marche
 
 ```
