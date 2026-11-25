@@ -118,6 +118,24 @@ L'identification améliorée, mesurée sur 8 vrais scans de Julien (A/B avant/ap
   (retesté 3 appels d'affilée); les quotas restent sur la démo publique
   (retestés : 1er appel 200, 2e 429).
 
+## v1.6 — 25 novembre 2026 (midi passé)
+
+Les descriptions d'annonce font professionnelles :
+
+- La rédaction par le moteur est cadrée : 3-5 phrases courtes et sérieuses,
+  état réel AVEC les défauts (honnêteté), l'inclus annoncé si visible,
+  aucun emoji, aucune majuscule criarde, aucun prix dans le texte.
+- Le packaging par site est refait : plus de « photo1: », les inscriptions
+  deviennent une ligne propre (« Marquages lisibles : CASIO F-91W WR100M ») ;
+  eBay ne colle plus une « valeur estimée » dans le texte (le prix se règle
+  dans le champ du site — une fourchette en texte fait amateur) ;
+  Leboncoin parle « prix négociable pour achat groupé ».
+- Exemple réel (montre Casio, générée) : « Je revends ma montre Casio
+  F-91W dans sa version classique noire. C'est un grand classique du
+  digital, fiable et à étanchéité 100m. La montre est en bon état de
+  fonctionnement, sans cassure visible sur les photos. Je la remets en
+  main propre ou l'envoie soigneusement emballée. »
+
 ## Avant : les étapes du même jour (24 novembre)
 
 Les versions n'existaient pas encore — ces étapes intermédiaires ne sont pas

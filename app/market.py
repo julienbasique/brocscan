@@ -14,6 +14,8 @@ Deux services distincts :
 """
 from urllib.parse import quote_plus
 
+import re
+
 from .estimateur import titre_annonce as _titre
 
 # --- URLs (recherche = comps ; vendre = formulaire de dépôt, vérifiés) ---
@@ -86,54 +88,76 @@ PLATEFORMES_PAR_CATEGORIE = {
 # --- Titre & textes d'annonce -------------------------------------------
 # (le titre vient de estimateur.titre_annonce, importé en tête de fichier)
 
+_ETATS_FR = {
+    "neuf": "neuf",
+    "excellent": "excellent état",
+    "bon": "bon état",
+    "correct": "état correct",
+    "use": "visiblement usé",
+    "hs": "hors service (pour pièces ou débrouillard)",
+}
+
+
+def _lisible_net(ident: dict) -> str:
+    """texte_visible lisible pour UN HUMAIN : sans « photoN: », sans doublons."""
+    brut = (ident.get("texte_visible") or "").strip()
+    if not brut:
+        return ""
+    vus: list[str] = []
+    for morceau in brut.split(" | "):
+        net = re.sub(r"^photo\s*\d+\s*:\s*", "", morceau.strip())
+        if net and net.lower() not in [v.lower() for v in vus]:
+            vus.append(net)
+    return " ; ".join(vus)
+
+
 def _annonces_par_site(ident: dict, titre: str) -> dict[str, str]:
     """Texte d'annonce par plateforme (ton adapté, prêt à coller).
 
-    Le PARAGRAPHE descriptif vient du modèle cloud (ident["annonce"],
-    rédigé naturellement) s'il existe ; sinon du gabarit local. Le Python
-    ne fait que le packaging propre à chaque site (prix, envoi, ton).
+    Pro : le paragraphe descriptif vient du modèle (ident["annonce"]), la
+    préparation Python ajoute les SECTIONS utiles (état, inscriptions,
+    envoi) — jamais de prix dans le texte (le prix se règle dans le champ
+    dédié du site ; une fourchette dans le texte fait amateur).
     """
-    etat = ident.get("etat") or "bon"
-    texte_visible = (ident.get("texte_visible") or "").strip()
+    etat_fr = _ETATS_FR.get(ident.get("etat") or "bon", "bon état")
+    lisible_net = _lisible_net(ident)
     rarete = ident.get("rarete") or "commun"
-    vmin = ident.get("valeur_min_eur")
-    vmax = ident.get("valeur_max_eur")
-    noyau = "\n".join(
-        l for l in [
-            (ident.get("annonce") or "").strip(),
-            (
-                f"Texte lisible sur l'objet : {texte_visible}."
-                if texte_visible and texte_visible.lower() not in (ident.get("annonce") or "").lower()
-                else ""
-            ),
-            "Pièce de collection, intéressante pour les connaisseurs." if rarete == "rare" else "",
-        ] if l
-    ) or (
-        f"{titre} en état {etat}."
-        + (f"\nTexte lisible sur l'objet : {texte_visible}." if texte_visible else "")
+
+    noyau_lignes = [(ident.get("annonce") or "").strip()]
+    if etat_fr and not any(
+        m in (noyau_lignes[0] or "").lower() for m in ("état", "l'état", "usé")
+    ):
+        noyau_lignes.append(f"État : {etat_fr}.")
+    if lisible_net:
+        noyau_lignes.append(f"Marquages lisibles : {lisible_net}.")
+    if rarete == "rare":
+        noyau_lignes.append("Pièce recherchée par les collectionneurs.")
+    noyau = "\n".join(l for l in noyau_lignes if l) or (
+        f"{titre} — {etat_fr}."
     )
 
     leboncoin = "\n".join(
         t for t in (
             noyau,
-            f"Prix : {vmin} – {vmax} € (estimation de départ ; je peux discuter).",
-            "Remise en main propre ou envoi soigné. Contactez-moi pour plus de photos ou de détails.",
+            "Prix négociable en cas d'achat groupé.",
+            "Remise en main possible ou envoi colis suivi, bien protégé. "
+            "Réponse rapide à toute question.",
         ) if t
     )
 
-    # Vinted : court, tutoiement, SANS prix (champ dédié sur le site)
+    # Vinted : tutoiement, court, SANS prix (champ dédié sur le site)
     vinted = "\n".join(
         t for t in (
             noyau,
-            "Photos réelles de l'article, vendu en l'état. Écris-moi si tu veux plus de photos ou de détails !",
+            "Photos réelles du bien, vendu tel quel. N'hésite pas à me demander d'autres photos !",
         ) if t
     )
 
+    # eBay : le prix se règle dans le formulaire — pas de mention de prix ici
     ebay = "\n".join(
         t for t in (
             noyau,
-            f"Valeur estimée : {vmin} – {vmax} € (voir mes autres photos, vendu en l'état).",
-            "Envoi rapide et soigné avec emballage de protection. N'hésitez pas à me contacter.",
+            "Envoi colis suivi avec emballage rigide. Questions bienvenues, réponse rapide.",
         ) if t
     )
 
