@@ -60,6 +60,30 @@ La démo sur INTERNET : BrocScan accessible à tout le monde, gratuitement.
   stocké (71 photos avant = 71 après).
 - Après un reboot du PC : l'icône de bureau relance tout, porte internet incluse.
 
+## v1.3 — 25 novembre 2026 (après-midi)
+
+Sécurité du compte et de la démo publique.
+
+- Nouvelle option « **code d'accès** » : quand elle est activée (le
+  propriétaire choisit le code), la démo demande le code à chaque
+  nouveau visiteur (mémorisé une fois par navigateur). Un mauvais code
+  → refus clair en français, et il ne consomme pas de quota.
+  Testé de bout en bout : sans code → « Code d'accès requis » ; avec le
+  bon code → scan + prix réels passent. OFF par défaut (démo ouverte),
+  ON sur demande.
+- Vérifié ce que la porte internet expose : **UNE SEULE route**
+  (Funnel : l'adresse publique → l'instance publique 8001). Ni le compte
+  Tailscale, ni l'app privée, ni aucun réglage : personne ne peut
+  « se connecter » à un compte via cette adresse — il n'y a aucun
+  identifier sur cette porte, elle ne parle qu'à l'app.
+- Rappel de ce qui était déjà verrouillé depuis v1.2 : instance publique
+  séparée (127.0.0.1:8001), historique et photos invisibles, suppression
+  bloquée, scans éphémères, quotas 4/h + 100/j et 1/h + 12/j.
+- Le seul endroit du code où un abus pourrait toucher le compte Ollama
+  reste le quota nuage — borné par les garde-fous ; et si un jour tu veux
+  la démo SANS nuage du tout (0 risque pour ton compte, scans 20-30 s) :
+  une ligne à changer.
+
 ## Avant : les étapes du même jour (24 novembre)
 
 Les versions n'existaient pas encore — ces étapes intermédiaires ne sont pas

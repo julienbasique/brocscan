@@ -23,7 +23,7 @@ from . import db, vision
 from .images import normaliser_image
 from .market import recommander_plateformes
 from .marche import prix_reels_vinted
-from .public import PUBLIC, verifier as verifier_limite
+from .public import CODE_ACCES, PUBLIC, verifier as verifier_limite
 
 BASE = Path(__file__).resolve().parent.parent
 app = FastAPI(title="BrocScan", version="1.2.0")
@@ -156,6 +156,7 @@ def statut():
         "cloud": vision.ACTIVER_CLOUD,
         "modeles_cloud": vision.MODELES_CLOUD,
         "public": PUBLIC,
+        "code_requis": bool(CODE_ACCES),
     }
 
 

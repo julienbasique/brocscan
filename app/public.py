@@ -19,6 +19,8 @@ from datetime import date
 
 from fastapi import HTTPException, Request
 
+CODE_ACCES = os.environ.get("CODE_ACCES", "").strip()
+
 PUBLIC = os.environ.get("PUBLIC_DEMO") == "1"
 
 # fenêtre glissante d'une heure + plafond global par jour (toutes IP)
@@ -40,12 +42,21 @@ _JOUR: dict[date, dict[str, int]] = {}
 
 
 def verifier(cle: str, request: Request) -> None:
-    """Lève HTTPException 429 (si dépassement) ou note l'usage (sinon)."""
+    """Lève HTTPException (si interdit/dépassement) ou note l'usage (sinon)."""
     transmise = (request.headers.get("x-forwarded-for") or "").split(",")[0].strip()
     ip = transmise or (request.client.host if request.client else "?")
     maintenant = time.time()
     avec_verrou = date.today()
     with _VERROU:
+        # 1. code d'accès (optionnel : si CODE_ACCES est posé, il est exigé) ;
+        #    un mauvais code ne consomme PAS la quota
+        donne = request.headers.get("x-code-acces", "").strip()
+        if CODE_ACCES and donne != CODE_ACCES:
+            raise HTTPException(
+                401,
+                "Code d'accès requis — demandez-le au propriétaire de la démo.",
+            )
+        # 2. quotas
         fenetre = [t for t in _FENETRE.get((cle, ip), []) if maintenant - t < 3600]
         if len(fenetre) >= MAX_HEURE[cle]:
             raise HTTPException(429, MESSAGES_HEURE[cle])

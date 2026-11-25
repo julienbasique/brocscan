@@ -25,6 +25,20 @@ const MAX_PHOTOS = 3;
 let fichiers = [];        // File[] sélectionnées (max 3)
 let annoncesCourantes = []; // [{nom, titre, description, url_vendre, url_recherche}]
 let objetPhoto = null;    // URL de la photo 1 (aperçu du résultat)
+
+// Code d'accès (démo fermée par son propriétaire, optionnel) : demandé
+// une seule fois par visiteur, mémorisé dans le navigateur.
+let codeAcces = localStorage.getItem("brocscan_code") || "";
+function enteteCode() {
+  const h = {};
+  if (codeAcces) h["x-code-acces"] = codeAcces;
+  return h;
+}
+function codeRejete(contexte) {
+  localStorage.removeItem("brocscan_code");
+  codeAcces = (prompt((contexte || "") + "Quel est le code d'accès ?") || "").trim();
+  if (codeAcces) localStorage.setItem("brocscan_code", codeAcces);
+}
 let modelePret = false;
 let chrono = null;
 
@@ -38,6 +52,10 @@ async function verifierStatut() {
     const r = await fetch("/api/status");
     const s = await r.json();
     modelePret = s.ollama_actif;
+    if (s.code_requis && !codeAcces) {
+      codeAcces = (prompt("Cette démonstration est protégée par un code d'accès. Quel est le code ?") || "").trim();
+      if (codeAcces) localStorage.setItem("brocscan_code", codeAcces);
+    }
     $("mode-badge").textContent = s.cloud ? "CLOUD + LOCAL" : "100% LOCAL";
     $("status-dot").className = "dot " + (s.ollama_actif ? "dot-ok" : "dot-bad");
     $("status-text").textContent = s.ollama_actif ? "modèle prêt" : "modèle absent";
@@ -126,8 +144,9 @@ elAnalyse.addEventListener("click", () => {
   fichiers.forEach((f) => donnees.append("photos", f, f.name));
   donnees.append("contexte", elContexte.value.trim());
 
-  fetch("/api/scan", { method: "POST", body: donnees })
+  fetch("/api/scan", { method: "POST", body: donnees, headers: enteteCode() })
     .then(async (r) => {
+      if (r.status === 401) codeRejete("Code d'accès manquant ou faux. ");
       if (!r.ok) throw new Error((await r.json()).detail || r.statusText);
       return r.json();
     })
@@ -274,9 +293,10 @@ $("market-btn").addEventListener("click", async () => {
   $("market-details").innerHTML = "";
   try {
     const q = encodeURIComponent(motsClesDernierScan || "dualsense");
-    const r = await fetch("/api/marche?mots_cles=" + q);
+    const r = await fetch("/api/marche?mots_cles=" + q, { headers: enteteCode() });
     const d = await r.json();
-    if (!d.ok) throw new Error(d.erreur || "marché indisponible");
+    if (r.status === 401) codeRejete("Code d'accès manquant ou faux. ");
+    if (!d.ok) throw new Error(d.detail || d.erreur || "marché indisponible");
     $("market-ligne").textContent =
       `${d.nombre} annonces Vinted aujourd'hui — de ${d.min} € à ${d.max} €, médiane ${d.mediane} €`;
     $("market-details").innerHTML = (d.echantillon || [])
