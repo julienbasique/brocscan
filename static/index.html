@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>BrocScan</title>
+  <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="/static/manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <div class="wordmark">
+        BrocScan <span id="mode-badge" class="mono-badge">100% LOCAL</span>
+      </div>
+      <div class="model-status">
+        <span id="status-dot" class="dot dot-gray"></span>
+        <span id="status-text" class="mono-caption">modèle…</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <p class="lede">Photographiez un objet : identification, fourchette de valeur,
+    et vos annonces prêtes à coller sur chaque plateforme — rien ne quitte votre machine.</p>
+
+    <!-- Analyse -->
+    <section id="scan-section">
+      <div id="dropzone" class="dropzone" role="button" tabindex="0">
+        <div id="dropzone-hint" class="dropzone-hint">
+          <span class="dropzone-glyph">＋</span>
+          <p>Jusqu'à 3 photos du même objet</p>
+          <p class="mono-caption">face · dos · détails — JPG · PNG · 15 Mo max</p>
+        </div>
+        <div id="previews" class="previews hidden"></div>
+        <input id="photo-input" type="file" multiple
+               accept="image/*,image/*;capture=environment" capture="environment" hidden>
+      </div>
+
+      <div class="contexte-bloc">
+        <label class="mono-caption" for="contexte">PRÉCISIONS (OPTIONNEL) — aide le modèle si l'objet est atypique</label>
+        <textarea id="contexte" rows="2" maxlength="300"
+          placeholder="ex : « c'est la boîte d'un Apple Pencil », « vendu avec son étui », « neuf, jamais utilisé »"></textarea>
+      </div>
+
+      <button id="analyze-btn" class="btn-primary" disabled>Analyser</button>
+    </section>
+
+    <!-- Chargement -->
+    <section id="loading" class="card loading hidden">
+      <div class="pulse"></div>
+      <p>Identification en cours… <span id="elapsed" class="mono-caption">0 s</span></p>
+      <p class="help">≈ 20 s par photo une fois le modèle lancé. La toute première
+      analyse du jour peut prendre 2-3 min (chargement du modèle).</p>
+    </section>
+
+    <!-- Résultat -->
+    <section id="result" class="hidden">
+      <div class="card">
+        <div class="result-grid">
+          <div class="result-photos">
+            <img id="result-photo" class="result-photo" alt="objet analysé">
+            <div id="result-thumbs" class="result-thumbs"></div>
+          </div>
+          <div class="result-info">
+            <div id="badges" class="badges"></div>
+            <h1 id="result-title" class="result-title"></h1>
+            <div class="value-block">
+              <span class="mono-caption">ESTIMATION — FOURCHETTE</span>
+              <div id="result-value" class="result-value"></div>
+              <p class="help">Vérifiez les ventes réelles via les liens « prix réels » ci-dessous.</p>
+              <div class="market-block hidden" id="market-block">
+                <div id="market-ligne" class="market-ligne mono-caption"></div>
+                <div id="market-details" class="market-titres"></div>
+              </div>
+              <button id="market-btn" class="btn-mini" style="margin-top:12px">Prix réels du marché (Vinted)</button>
+            </div>
+            <p id="result-descr" class="descr"></p>
+            <p id="result-texte" class="result-texte hidden"></p>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="section-title">Où le vendre — annonce prête à coller</h2>
+      <div id="plateformes" class="plateformes"></div>
+
+      <div class="actions">
+        <button id="reset-btn" class="btn-ghost">Nouveau scan</button>
+      </div>
+    </section>
+
+    <!-- Historique -->
+    <section id="history-section" class="hidden">
+      <h2 class="section-title">Historique</h2>
+      <div id="history" class="history"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    BrocScan — traitement local via Gemma 4 (Ollama). Estimations indicatives :
+    les prix réels sont ceux des liens « ventes terminées ».
+  </footer>
+
+  <script src="/static/app.js?v=3"></script>
+</body>
+</html>
