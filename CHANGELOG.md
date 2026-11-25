@@ -136,6 +136,19 @@ Les descriptions d'annonce font professionnelles :
   fonctionnement, sans cassure visible sur les photos. Je la remets en
   main propre ou l'envoie soigneusement emballée. »
 
+## v1.7 — 25 novembre 2026 (jeudi midi)
+
+Deux règles de rédaction de Julien appliquées et testées :
+
+- **Ne dire que ce qui est sûr** : un accessoire (boîte, câble, notice) n'est
+  annoncé que s'il est visible sur les photos ou dit dans les précisions ;
+  et si personne n'a dit qu'il manque un truc, l'annonce n'invente AUCUNE
+  absence. (Test A sans précision : rien d'inventé.)
+- **À la première personne, toujours** : c'est Julien le vendeur — l'annonce
+  ne dit plus jamais « d'après le vendeur » ; les précisions s'infiltrent
+  naturellement (« Je la vends avec sa boîte d'origine… »). (Test B : la
+  boîte du contexte est bien intégrée, aucune mention de « vendeur ».)
+
 ## Avant : les étapes du même jour (24 novembre)
 
 Les versions n'existaient pas encore — ces étapes intermédiaires ne sont pas

@@ -135,7 +135,7 @@ def message_complet(nom_modele: str, contexte: str = "") -> str:
         # La clé est insérée DANS le gabarit JSON, sinon elle est ignorée.
         avec_annonce = message.replace(
             '"confiance":1.0 si marque lisible, sinon 0.6-0.8}',
-            '"annonce":"Annonce PROFESSIONNELLE en 3 à 5 phrases COURTES et sérieuses : 1) l\'objet et ce qui le rend recherché ; 2) l\'état réel avec les défauts visibles précisés (honnêteté exigée) ; 3) ce qui est inclus (boîte, câble, notice) si visible ; 4) remise en main possible ou envoi soigné. Ton de vendeur fiable : aucun emoji, aucune majuscule criarde, aucun prix, ZÉRO invention ; les infos du contexte vendeur sont signalées comme « précision du vendeur »","confiance":1.0 si marque lisible, sinon 0.6-0.8}',
+            '"annonce":"Annonce PROFESSIONNELLE à la première personne, 3 à 5 phrases COURTES et sérieuses (tu ES le vendeur : ne cite JAMAIS « d\'après le vendeur ») : 1) l\'objet et ce qui le rend recherché ; 2) l\'état réel, défauts visibles précisés ; 3) l\'inclus UNIQUEMENT si visible sur les photos ou dit dans le contexte — et ne dis JAMAIS qu\'il manque quelque chose si personne ne l\'a évoqué ; 4) remise en main possible ou envoi soigné. Aucun emoji, aucune majuscule criarde, aucun prix, ZÉRO invention","confiance":1.0 si marque lisible, sinon 0.6-0.8',
         )
         message = avec_annonce if avec_annonce != message else (
             message
